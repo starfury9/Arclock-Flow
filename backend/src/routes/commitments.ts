@@ -12,6 +12,7 @@ import {
   setOnchainId,
 } from "../repository";
 import { runDeterministicVerification } from "../verification";
+import { assertFutureDeadline, toUnixSeconds } from "../deadline";
 
 export const commitmentsRouter = Router();
 
@@ -28,15 +29,6 @@ const createCommitmentSchema = z.object({
   verificationMethod: z.enum(["deterministic", "ai", "hybrid"]).default("deterministic"),
 });
 
-function toUnixSeconds(deadline: string | number): number {
-  if (typeof deadline === "number") return deadline;
-  const asNumber = Number(deadline);
-  if (!Number.isNaN(asNumber) && String(asNumber) === deadline) return asNumber;
-  const parsed = Date.parse(deadline);
-  if (Number.isNaN(parsed)) throw new Error("deadline must be a unix timestamp or ISO date string");
-  return Math.floor(parsed / 1000);
-}
-
 // POST /api/commitments
 // Agent/human entrypoint for creating a commitment. Mirrors README section 23.
 commitmentsRouter.post("/", (req, res) => {
@@ -49,6 +41,7 @@ commitmentsRouter.post("/", (req, res) => {
   let deadlineSeconds: number;
   try {
     deadlineSeconds = toUnixSeconds(input.deadline);
+    assertFutureDeadline(deadlineSeconds);
   } catch (err) {
     return res.status(400).json({ error: "invalid_deadline", message: (err as Error).message });
   }

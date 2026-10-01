@@ -30,6 +30,20 @@ export default function CreateCommitmentPage() {
     .map((c) => c.trim())
     .filter(Boolean);
 
+  // Minimum lead time before a deadline is accepted, kept in sync with the
+  // backend's assertFutureDeadline check and the on-chain InvalidDeadline
+  // guard in ArcLock.createCommitment (deadline must be > block.timestamp).
+  const MIN_DEADLINE_LEAD_MINUTES = 1;
+  const minDeadlineLocal = (() => {
+    const d = new Date(Date.now() + MIN_DEADLINE_LEAD_MINUTES * 60 * 1000);
+    d.setSeconds(0, 0);
+    // datetime-local inputs expect "YYYY-MM-DDTHH:mm" in local time.
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
+      d.getMinutes()
+    )}`;
+  })();
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrorMsg(null);
@@ -45,9 +59,15 @@ export default function CreateCommitmentPage() {
       return;
     }
 
+    const deadlineSeconds = Math.floor(new Date(deadline).getTime() / 1000);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (!deadline || Number.isNaN(deadlineSeconds) || deadlineSeconds <= nowSeconds + 60) {
+      setErrorMsg("Deadline must be at least a minute in the future.");
+      return;
+    }
+
     try {
       setStep("saving");
-      const deadlineSeconds = Math.floor(new Date(deadline).getTime() / 1000);
       const { commitmentId } = await createCommitment({
         payer: address,
         recipient,
@@ -210,6 +230,7 @@ export default function CreateCommitmentPage() {
             <input
               required
               type="datetime-local"
+              min={minDeadlineLocal}
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
               className="field-input"
