@@ -1,0 +1,30 @@
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Contracts
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+
+# Backend
+backend/data/*.sqlite
+backend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

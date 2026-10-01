@@ -1,0 +1,18 @@
+{
+  "name": "arclock-flow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Programmable USDC commitments for outcome-based settlement on Arc.",
+  "workspaces": [
+    "contracts",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "contracts:compile": "npm run compile --workspace contracts",
+    "contracts:test": "npm run test --workspace contracts",
+    "backend:dev": "npm run dev --workspace backend",
+    "frontend:dev": "npm run dev --workspace frontend"
+  },
+  "license": "MIT"
+}
