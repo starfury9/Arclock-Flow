@@ -125,6 +125,22 @@ body {
   color: rgba(255, 255, 255, 0.3);
 }
 
+/* Dark-native date controls: makes the browser's calendar popup and icons
+   render for a dark theme instead of a white box with an invisible icon. */
+.date-field {
+  color-scheme: dark;
+}
+
+.date-field::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.55;
+  filter: invert(1);
+}
+
+.date-field::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.9;
+}
+
 .field-input:focus {
   border-color: rgba(139, 108, 242, 0.6);
   box-shadow: 0 0 0 3px rgba(139, 108, 242, 0.18);

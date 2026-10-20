@@ -7,6 +7,7 @@ import { isAddress, keccak256, parseUnits, toBytes } from "viem";
 import { ARCLOCK_CONTRACT_ADDRESS, USDC_ADDRESS, USDC_DECIMALS, activeChain } from "@/lib/chains";
 import { arcLockAbi, erc20Abi } from "@/lib/arclockAbi";
 import { createCommitment, fundCommitment } from "@/lib/api";
+import { DeadlinePicker } from "@/components/DeadlinePicker";
 
 type Step = "idle" | "saving" | "approving" | "creating" | "funding" | "done" | "error";
 
@@ -34,15 +35,6 @@ export default function CreateCommitmentPage() {
   // backend's assertFutureDeadline check and the on-chain InvalidDeadline
   // guard in ArcLock.createCommitment (deadline must be > block.timestamp).
   const MIN_DEADLINE_LEAD_MINUTES = 1;
-  const minDeadlineLocal = (() => {
-    const d = new Date(Date.now() + MIN_DEADLINE_LEAD_MINUTES * 60 * 1000);
-    d.setSeconds(0, 0);
-    // datetime-local inputs expect "YYYY-MM-DDTHH:mm" in local time.
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
-      d.getMinutes()
-    )}`;
-  })();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -229,36 +221,32 @@ export default function CreateCommitmentPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div>
-            <label className="field-label">Amount (USDC)</label>
-            <div className="relative">
-              <input
-                required
-                type="number"
-                min="0"
-                step="0.000001"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="100"
-                className="field-input pr-14"
-              />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-white/35">
-                USDC
-              </span>
-            </div>
-          </div>
-          <div>
-            <label className="field-label">Deadline</label>
+        <div>
+          <label className="field-label">Amount (USDC)</label>
+          <div className="relative">
             <input
               required
-              type="datetime-local"
-              min={minDeadlineLocal}
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-              className="field-input"
+              type="number"
+              min="0"
+              step="0.000001"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="100"
+              className="field-input pr-14"
             />
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-white/35">
+              USDC
+            </span>
           </div>
+        </div>
+
+        <div>
+          <label className="field-label">Deadline</label>
+          <DeadlinePicker
+            value={deadline}
+            onChange={setDeadline}
+            minLeadMinutes={MIN_DEADLINE_LEAD_MINUTES}
+          />
         </div>
 
         <div>
