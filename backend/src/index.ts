@@ -1,3 +1,9 @@
+// Load the single repo-root .env (PORT, ARC_NETWORK, ...) before anything
+// reads process.env. Existing environment variables take precedence.
+import * as path from "path";
+import * as dotenv from "dotenv";
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+
 import "./db"; // ensures schema is created on boot
 import express from "express";
 import cors from "cors";

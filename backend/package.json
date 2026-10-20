@@ -14,7 +14,8 @@
     "cors": "^2.8.5",
     "ethers": "^6.13.2",
     "express": "^4.19.2",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "dotenv": "16.6.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",

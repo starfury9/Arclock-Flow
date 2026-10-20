@@ -1,3 +1,8 @@
+// Next.js only reads .env files from its own folder (frontend/). The project
+// keeps a single .env at the repo root, so load it explicitly. Values already
+// set in the environment (e.g. on Vercel) take precedence.
+require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
