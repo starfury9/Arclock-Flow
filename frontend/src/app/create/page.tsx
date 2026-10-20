@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount, useWriteContract, usePublicClient } from "wagmi";
-import { keccak256, parseUnits, toBytes } from "viem";
-import { ARCLOCK_CONTRACT_ADDRESS, USDC_ADDRESS, USDC_DECIMALS } from "@/lib/chains";
+import { isAddress, keccak256, parseUnits, toBytes } from "viem";
+import { ARCLOCK_CONTRACT_ADDRESS, USDC_ADDRESS, USDC_DECIMALS, activeChain } from "@/lib/chains";
 import { arcLockAbi, erc20Abi } from "@/lib/arclockAbi";
 import { createCommitment, fundCommitment } from "@/lib/api";
 
@@ -12,7 +12,7 @@ type Step = "idle" | "saving" | "approving" | "creating" | "funding" | "done" | 
 
 export default function CreateCommitmentPage() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
 
@@ -56,6 +56,22 @@ export default function CreateCommitmentPage() {
       setErrorMsg(
         "NEXT_PUBLIC_ARCLOCK_CONTRACT_ADDRESS is not configured. Deploy the contract and set it in .env."
       );
+      return;
+    }
+    if (chainId !== activeChain.id) {
+      setErrorMsg(`Your wallet is on the wrong network. Switch to ${activeChain.name} and try again.`);
+      return;
+    }
+    if (!isAddress(recipient)) {
+      setErrorMsg("Recipient must be a valid 0x wallet address (42 characters).");
+      return;
+    }
+    if (recipient.toLowerCase() === address.toLowerCase()) {
+      setErrorMsg("Recipient can't be your own wallet. Enter the address of the person who will do the work.");
+      return;
+    }
+    if (!(Number(amount) > 0)) {
+      setErrorMsg("Amount must be greater than 0 USDC.");
       return;
     }
 
@@ -170,6 +186,13 @@ export default function CreateCommitmentPage() {
         </div>
       )}
 
+      {!ARCLOCK_CONTRACT_ADDRESS && (
+        <div className="mb-6 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm text-blue-200">
+          The ArcLock contract isn&apos;t deployed yet, so commitments can&apos;t be locked on-chain.
+          You can fill in the form, but submitting is disabled until the contract address is set.
+        </div>
+      )}
+
       {isBusy && (
         <div className="mb-6 flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-4">
           {progressSteps.map((s, i) => (
@@ -277,7 +300,7 @@ export default function CreateCommitmentPage() {
 
         <button
           type="submit"
-          disabled={!isConnected || isBusy}
+          disabled={!isConnected || isBusy || !ARCLOCK_CONTRACT_ADDRESS}
           className="btn-primary w-full !py-3.5 text-base"
         >
           {isBusy && (
